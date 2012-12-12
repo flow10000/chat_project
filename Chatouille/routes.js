@@ -64,8 +64,7 @@ app.router.get('/discussion/:address', function (address) {
 						var previous_talk = "";
 						var next_talk = "";
 						
-						collection.find({}, {_id: 1, name:1}, {sort: {_id: -1}}).toArray(function(err, result) {
-							console.log(result);
+						collection.find({}, {_id: 1, name:1}, {sort: {_id: 1}}).toArray(function(err, result) {
 							for(var i = 0; i < result.length; i++) {
 								if(String(result[i]._id) == String(data._id)) {
 									if(result[i - 1]) {
