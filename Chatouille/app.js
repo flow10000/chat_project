@@ -1,3 +1,9 @@
+/*
+	App.js
+	contient une liste des clients connecté et une chatroom.
+	se charge de récupérer les entrées
+*/
+
 var plugin_path = "../node_modules/";
 function Get_Plugin_Path(plugin_name)
 {
@@ -8,6 +14,7 @@ var flatiron = require(Get_Plugin_Path('flatiron')),
     path = require('path'),
     app = flatiron.app,
 	fs = require("fs"),
+	plates = require(Get_Plugin_Path('plates')),
 	connect = require('connect');
 
 
@@ -18,27 +25,19 @@ var mongo = require('mongodb'),
     db = new Db('chatouilles', server);
 	
 
+eval(fs.readFileSync('dbmgr.js', encoding = "utf-8"));
+var dbMgr = new DbMgr();
+	
 eval(fs.readFileSync('routes.js', encoding = "utf-8"));
 eval(fs.readFileSync('client.js', encoding = "utf-8"));
 eval(fs.readFileSync('chatroom.js', encoding = "utf-8"));
 eval(fs.readFileSync('bot.js', encoding = "utf-8"));
 eval(fs.readFileSync('message.js', encoding = "utf-8"));
+eval(fs.readFileSync('talk.js', encoding = "utf-8"));
 
-//eval(fs.readFileSync('dbentity.js', encoding = "utf-8"));
-
-//app.config.file({ file: path.join(__dirname, 'config', 'config.json') });
-
-//app.use(flatiron.plugins.http);
-
-/*
-app.router.get('/', function () {
-  this.res.json({ 'hello': 'world' })
-});
-*/
-//var dbEntity = new dbEntity(mongodb);
 
 var clients = new Array();
-var chatRoom = new ChatRoom(/*dbEntity*/);
+var chatRoom = new ChatRoom();
 
 app.start(3000);
 
@@ -73,7 +72,3 @@ io.sockets.on('connection', function(socket)
 		clients.splice(socket.id, 1);
 	});
 });
-
-
-
-
