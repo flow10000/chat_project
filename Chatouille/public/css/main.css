@@ -124,3 +124,7 @@ p, ol, ul, pre, form
 #register_area button {
 	height:30px;
 }
+
+#not_found {
+	text-align:center;
+}
