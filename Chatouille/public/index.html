@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <script src="socket.io/socket.io.js"></script>
+        <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+        <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+        <script>
+            var socket = io.connect('http://localhost');
+            $(document).ready(function(){
+				$('.button').button();
+				$("#message_input").val('');
+				$('#send_message').button({ disabled: true });
+				$('input[type=text]').addClass('ui-state-default ui-corner-all');
+				$('input[type=text]').bind({
+					focusin: function() {
+						$(this).toggleClass('ui-state-focus');
+					},
+					focusout: function() {
+						$(this).toggleClass('ui-state-focus');
+					}
+				});
+				
+				
+				socket.on('new_message', function (data) {
+					$('#chat_content').append("<p>"+data+"</p>");
+					$('#chat_content').animate({scrollTop:$('#chat_content').height()}, 'slow');
+				});
+				
+				$('#send_message').click(function(){
+					socket.emit('new_message', $("#message_input").val());
+					$("#message_input").val('');
+					$("#message_input").focus();
+					$('#send_message').button({ disabled: true });
+				});
+				
+				
+				
+				if($("#message_input").length > 0)
+				{
+					$("#message_input").keypress(function (e){
+						code = e.keyCode ? e.keyCode : e.which;
+						  if(code.toString() == 13) 
+						  {
+							 $("#send_message").click();
+						  }
+					})
+				}
+				
+				if($("#pseudo_input").length > 0)
+				{
+					$("#pseudo_input").keypress(function (e){
+						code = e.keyCode ? e.keyCode : e.which;
+						  if(code.toString() == 13) 
+						  {
+							$("#change_pseudo").click();
+						  }
+					})
+				}
+				
+				
+				$("#message_input").keyup(function (){
+					if($(this).val().length >= 1)
+					{
+						$('#send_message').button({ disabled: false });
+					}
+					else
+						$('#send_message').button({ disabled: true });
+				});
+				
+				socket.on('connected_users', function(data) {
+					$('#user_list').html('');
+					$.each(data, function(i,j){
+						$('#user_list').append("<p>"+j+"</p>");
+					});
+				});
+				
+				$('#change_pseudo').click(function(){
+					socket.emit('nickname', $("#pseudo_input").val());
+					$("#message_input").focus();
+					$('#pseudo_input').attr("disabled", true);
+					$(this).button({ disabled: true });
+				});
+				
+				
+			});
+        </script>
+		<link rel="stylesheet" href="css/main.css" type="text/css" />
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css" />
+    </head>
+
+    <body>
+        <div id="content">
+			<div id="header">
+				<h1>Chat(ouille) <img src="img/logo-chatouille.png" alt="NodeJS Chat"></h1>
+			</div>
+			<div id="chat_area">
+				<div id="user_management">
+					<h3>Utilisateurs connectés</h3>
+					<div id="user_list">
+					</div>
+					<div id="register_area">
+						<label for="pseudo_input">Pseudo :</label><br/>
+						<input type="text" id="pseudo_input" name="pseudo_input"/>
+						<button id="change_pseudo" class="button">Ok</button>
+					</div>
+				</div>
+				<div id="chat_content">
+				
+				</div>
+				<div id="user_message">
+					<input type="text" id="message_input" name="message_input"/><button id="send_message" class="button">Envoyer</button>
+				</div>
+			</div>
+		</div>
+    </body>
+</html>
