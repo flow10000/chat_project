@@ -1,5 +1,6 @@
 /* 
-Message Object
+Classe Message
+Représente un message
 */
 
 var Message = function(t, nick, ct)
