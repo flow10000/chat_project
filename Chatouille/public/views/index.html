@@ -49,7 +49,6 @@
 				}
 				
 				socket.on('new_message', function (data) {
-					console.log(data);
 					var temp_index = $("div[room='"+data.tag+"']").attr('id');
 					var temp_class = "";
 					if(data.nickName == "MrChatouille")
@@ -151,7 +150,15 @@
 				});
 				
 				function addTab() {
-					var label = tabTitle.val().toLowerCase();
+					var label = $.trim(tabTitle.val()).toLowerCase();
+					var reg = new RegExp('/[^a-zA-Z0-9_]/g');
+					if(!(reg.test(label)))
+					{
+						label = label.replace(/é|è|ê|ë/g, '').replace(/à|â/g, '').replace(/î|ï/g, '').replace(/ô|ö/g, '').replace(/û|ü|ù/g, '').replace(/ç/g, '').replace(/[^a-zA-Z0-9_' ]/g, '').replace(/'/g, '');
+						label = label.replace(/ /g, '');
+					}
+					label = $.trim(label).toLowerCase();
+					
 					if($.inArray(label,active_rooms) == -1 && $.trim(label) != "")
 					{
 						active_rooms.push(label);
