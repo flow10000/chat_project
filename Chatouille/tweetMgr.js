@@ -18,7 +18,7 @@ TweetMgr.prototype.Get = function(cb)
 	_this.GetLastId(function()
 	{
 		var data = '';
-		http.get("http://search.twitter.com/search.json?q="+_this.tag+"&lang=fr&result_type=recent&since_id="+_this.lastid, function(req)
+		http.get("http://search.twitter.com/search.json?q="+_this.tag+"&lang=fr&result_type=recent&include_entities=true&since_id="+_this.lastid, function(req)
 		{
 			req.setEncoding('utf8');
 			req.on('data', function(result) {
@@ -33,10 +33,18 @@ TweetMgr.prototype.Get = function(cb)
 				
 				for(var t in results)
 				{
-					var tweet = new Message(_this.tag, results[t].from_user_name, results[t].text);
-					tweet.from = 'tweeter';
-					tweet.time = results[t].created_at;
-					tweets.push(tweet);
+					var hashtags = results[t].entities.hashtags;
+					for(var h in hashtags)
+					{
+						if(hashtags[h].text.toLowerCase() == _this.tag.toLowerCase())
+						{
+							var tweet = new Message(_this.tag, results[t].from_user_name, results[t].text);
+							tweet.from = 'tweeter';
+							tweet.time = results[t].created_at;
+							tweets.push(tweet);
+							break;
+						}						
+					}
 				}
 					
 				cb(tweets);
