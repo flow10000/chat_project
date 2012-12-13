@@ -5,7 +5,7 @@ Chat'ouille - Version 2
 - Gestion des pseudos (pseudo unique, ...)
 - Génération de pages statics reprennant les conversations
 - Affichage sur la page d'accueil => optimisation SEO
-
+- Nettoyage des messages des utilisateurs (XSS, ...)
 
 Technologies
 

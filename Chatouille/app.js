@@ -15,7 +15,8 @@ var flatiron = require(Get_Plugin_Path('flatiron')),
     app = flatiron.app,
 	fs = require("fs"),
 	plates = require(Get_Plugin_Path('plates')),
-	connect = require('connect');
+	connect = require('connect'),
+	sanitizer = require(Get_Plugin_Path('sanitizer'));
 
 
 var mongo = require('mongodb'),
@@ -57,6 +58,7 @@ io.sockets.on('connection', function(socket)
 	
 	socket.on('new_message', function(data)
 	{
+		data.content = sanitizer.escape(data.content);
 		if(chatRooms[data.tag])
 			chatRooms[data.tag].NewMessage(socket.id, data.content);
 	});
