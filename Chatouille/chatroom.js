@@ -93,23 +93,8 @@ ChatRoom.prototype.ClientDisconnect = function(id)
 
 ChatRoom.prototype.NewMessage = function(clientId, content)
 {
-	//var txtmessage = this.clients[clientId].nickName + ' : ' + content;
-	
-	
 	var mess = new Message(this.tag, this.clients[clientId].nickName, content);
 	this.DispatchMessage(mess);
-	
-	/*
-	for(var c in this.clients)
-		this.clients[c].socket.emit('new_message', mess);
-		//this.clients[c].socket.emit('new_message', {tag:this.tag, content:txtmessage});
-	
-	this.SaveMessage(mess);
-	this.blankTime = 0;
-	
-	if(this.talk.length > 0 || content.split(' ').length >= 5)
-		this.talk.push(mess);
-		*/
 }
 
 ChatRoom.prototype.NewTweets = function(tweets)
