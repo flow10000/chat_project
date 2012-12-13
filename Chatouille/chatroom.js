@@ -11,6 +11,7 @@ var ChatRoom = function(tag)
 	this.blankTime = 0; // temps en seconde durant lequel personne ne parle
 	this.talk = new Array();
 	this.bot = new Bot(tag, 'MrChatouille');
+	this.tweetMgr = new TweetMgr(this.tag);
 	
 	var _this = this;
 	setInterval(function()
@@ -26,12 +27,24 @@ var ChatRoom = function(tag)
 				_this.ArchiveTalk(tlk, function()
 				{
 					_this.talk = new Array();
-					_this.bot.Talk("Retrouvez cette discution ici : <a href='http://localhost:3000/discussion/" + tlk.name + "'>http://localhost:3000/discussion/" + tlk.name + "</a>", _this.clients);
+					_this.bot.Talk("Retrouvez cette discution ici : <a href='http://localhost:3000/discussion/" + tlk.name + "' target='blank'>http://localhost:3000/discussion/" + tlk.name + "</a>", _this.clients);
 				});
 			}
 		}
 	}, 1000);
+	
+	if(_this.tag != 'general')
+	{
+		setInterval(function()
+		{
+			_this.tweetMgr.Get(function(tweets)
+			{
+				_this.NewTweets(tweets);
+			});
+		}, 10000);
+	}
 }
+
 
 ChatRoom.prototype.NewClient = function(id, client)
 {
@@ -47,7 +60,8 @@ ChatRoom.prototype.NewClient = function(id, client)
 ChatRoom.prototype.DisplayTalk = function(id)
 {
 	for(var t in this.talk)
-		this.clients[id].socket.emit('new_message', {tag:this.tag, content:this.talk[t].nickName + ' : ' + this.talk[t].content});
+		this.clients[id].socket.emit('new_message', this.talk[t]);
+		//this.clients[id].socket.emit('new_message', {tag:this.tag, content:this.talk[t].nickName + ' : ' + this.talk[t].content});
 }
 
 ChatRoom.prototype.ClientQuit = function(id)
@@ -79,17 +93,44 @@ ChatRoom.prototype.ClientDisconnect = function(id)
 
 ChatRoom.prototype.NewMessage = function(clientId, content)
 {
-	var txtmessage = this.clients[clientId].nickName + ' : ' + content;
-	for(var c in this.clients)
-		this.clients[c].socket.emit('new_message', {tag:this.tag, content:txtmessage});
+	//var txtmessage = this.clients[clientId].nickName + ' : ' + content;
 	
-	var mess = new Message(this.tag, this.clients[c].nickName, content);
+	
+	var mess = new Message(this.tag, this.clients[clientId].nickName, content);
+	this.DispatchMessage(mess);
+	
+	/*
+	for(var c in this.clients)
+		this.clients[c].socket.emit('new_message', mess);
+		//this.clients[c].socket.emit('new_message', {tag:this.tag, content:txtmessage});
 	
 	this.SaveMessage(mess);
 	this.blankTime = 0;
 	
 	if(this.talk.length > 0 || content.split(' ').length >= 5)
 		this.talk.push(mess);
+		*/
+}
+
+ChatRoom.prototype.NewTweets = function(tweets)
+{
+	for(var t in tweets)
+	{
+		var mess = tweets[t];
+		this.DispatchMessage(mess);
+	}
+}
+
+ChatRoom.prototype.DispatchMessage = function(message)
+{
+	for(var c in this.clients)
+		this.clients[c].socket.emit('new_message', message);
+		
+	this.SaveMessage(message);
+	this.blankTime = 0;
+	
+	if(this.talk.length > 0 || message.content.split(' ').length >= 5)
+		this.talk.push(message);
 }
 
 ChatRoom.prototype.UserChangeNickName = function(old, n)
