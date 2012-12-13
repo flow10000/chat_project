@@ -25,6 +25,8 @@ var mongo = require('mongodb'),
     db = new Db('chatouilles', server);
 	
 
+var http = require('http');
+
 eval(fs.readFileSync('dbmgr.js', encoding = "utf-8"));
 var dbMgr = new DbMgr();
 	
@@ -34,6 +36,7 @@ eval(fs.readFileSync('chatroom.js', encoding = "utf-8"));
 eval(fs.readFileSync('bot.js', encoding = "utf-8"));
 eval(fs.readFileSync('message.js', encoding = "utf-8"));
 eval(fs.readFileSync('talk.js', encoding = "utf-8"));
+eval(fs.readFileSync('tweetMgr.js', encoding = "utf-8"));
 
 
 var clients = new Array();
@@ -54,9 +57,6 @@ io.sockets.on('connection', function(socket)
 	
 	socket.on('new_message', function(data)
 	{
-		console.log('new_message');
-		console.log(data);
-		//chatRooms['general'].NewMessage(socket.id, data);
 		if(chatRooms[data.tag])
 			chatRooms[data.tag].NewMessage(socket.id, data.content);
 	});
@@ -90,7 +90,15 @@ io.sockets.on('connection', function(socket)
 	{
 		// disconect client from chatroom
 		for(var c in chatRooms)
+		{
 			chatRooms[c].ClientDisconnect(socket.id);
+			if(c != 'general' && chatRooms[c].clients.length <= 0)
+			{
+				console.log('delete chanel');
+				delete chatRooms[c];
+				chatRooms.splice(c, 1);	
+			}
+		}
 		
 		delete clients[socket.id];
 		clients.splice(socket.id, 1);
