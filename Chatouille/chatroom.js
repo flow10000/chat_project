@@ -4,12 +4,13 @@ Va gérer les interractions entre les utilisateurs connectés à la chatroom ain
 (insertion des messages et des discutions en base, connection, déconnection d'utilisateurs...)
 */
 
-var ChatRoom = function()
+var ChatRoom = function(tag)
 {
+	this.tag = tag;
 	this.clients = new Array();
 	this.blankTime = 0; // temps en seconde durant lequel personne ne parle
 	this.talk = new Array();
-	this.bot = new Bot('MrChatouille');
+	this.bot = new Bot(tag, 'MrChatouille');
 	
 	var _this = this;
 	setInterval(function()
@@ -18,8 +19,8 @@ var ChatRoom = function()
 		{
 			_this.blankTime++;
 			
-			if(_this.blankTime > 20) // 20 secondes pour les tests
-			//if(_this.blankTime > 300) // 5 minutes en conditions réelles
+			//if(_this.blankTime > 20) // 20 secondes pour les tests
+			if(_this.blankTime > 300) // 5 minutes en conditions réelles
 			{
 				var tlk = new Talk(_this.talk);
 				_this.ArchiveTalk(tlk, function()
@@ -46,29 +47,43 @@ ChatRoom.prototype.NewClient = function(id, client)
 ChatRoom.prototype.DisplayTalk = function(id)
 {
 	for(var t in this.talk)
-		this.clients[id].socket.emit('new_message', this.talk[t].nickName + ' : ' + this.talk[t].content);
+		this.clients[id].socket.emit('new_message', {tag:this.tag, content:this.talk[t].nickName + ' : ' + this.talk[t].content});
+}
+
+ChatRoom.prototype.ClientQuit = function(id)
+{
+	if(this.clients[id])
+	{
+		var nickname = this.clients[id].nickName;
+		delete this.clients[id];
+		this.clients.splice(id, 1);
+		this.SendConnectedUsers();
+		this.bot.Talk(nickname + " à quitté le salon.", this.clients);
+	}
 }
 
 ChatRoom.prototype.ClientDisconnect = function(id)
 {
-	var nickname = this.clients[id].nickName;
 	if(this.clients[id])
 	{
-		delete this.clients[id];
-		this.clients.splice(id, 1);
-	}
-	
-	this.SendConnectedUsers();
-	this.bot.Talk(nickname + " s'est déconnecté.", this.clients);
+		var nickname = this.clients[id].nickName;
+		if(this.clients[id])
+		{
+			delete this.clients[id];
+			this.clients.splice(id, 1);
+		}
+		this.SendConnectedUsers();
+		this.bot.Talk(nickname + " s'est déconnecté.", this.clients);
+	}	
 }
 
 ChatRoom.prototype.NewMessage = function(clientId, content)
 {
 	var txtmessage = this.clients[clientId].nickName + ' : ' + content;
 	for(var c in this.clients)
-		this.clients[c].socket.emit('new_message', txtmessage);
+		this.clients[c].socket.emit('new_message', {tag:this.tag, content:txtmessage});
 	
-	var mess = new Message('general', this.clients[c].nickName, content);
+	var mess = new Message(this.tag, this.clients[c].nickName, content);
 	
 	this.SaveMessage(mess);
 	this.blankTime = 0;
@@ -118,5 +133,7 @@ ChatRoom.prototype.SendConnectedUsers = function()
 			connected_users.push(this.clients[c].nickName);
 
 	for(var c in this.clients)
-		this.clients[c].socket.emit('connected_users', connected_users);
+		this.clients[c].socket.emit('connected_users', {tag:this.tag, users:connected_users});
+		
+	
 }
