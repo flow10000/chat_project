@@ -13,8 +13,6 @@ html
 	font-size: 13px;
 	font-family: Freesans, sans-serif;
 	padding: 2em 2em;
-	/*width: 1280px;*/
-	
 	box-shadow:				1px 1px 8px #444;
 	-mox-box-shadow:		1px 1px 8px #444;
 	-webkit-box-shadow:		1px -1px 8px #444;
@@ -68,63 +66,94 @@ p, ol, ul, pre, form
 	text-align:center;
 	color:#fc6206;
 	font-size:18px;
+	margin-bottom:45px;
 }
 
 #chat_area {
 	margin:auto;
-	border:1px solid black;
 	width:1200px;
-	height:600px;
+	height:630px;
 }
 
-#user_management {
+.user_management {
 	float:right;
-	
+	border-left: 1px solid black;
+    padding-left: 18px;
+	height:800px;
+	overflow:auto;
+	height: 475px;
+	width: 195px;
 }
 
 #user_list {
 	width:200px;
-	height:495px;
+	height:400px;
 	padding: 20px 5px 5px;
 }
 
-#user_management h3 {
+.user_management h3 {
 	text-align:center;
+	margin-bottom:20px;
 }
 
-#chat_content {
-	height:540px;
-	overflow:auto;
-	padding-right:10px;
-	padding-left:5px;
+.user_management li {
+	list-style: none;
 }
 
 #user_message{
-	
 	padding:10px;
 }
 
 #user_message input{
 	width:800px;
-	height:30px;
-	font-size:25px;
+	height:18px;
+	font-size:17px;
 	padding:5px;
 }
 
 #user_message button{
-	height:35px;
 	margin-left:10px;
-	margin-bottom:-2px;
+	font-size: 15px;
 }
 
-#register_area  {
-	margin-left: 20px;
+#tools_aera {
+	color: #3A6DC4;
+    font-weight: bold;
 }
 
-#register_area button {
-	height:30px;
-}
+/* 404 */
 
 #not_found {
 	text-align:center;
+}
+
+/* Tab muliroom */
+
+
+#chat_content { margin-top: 1em; }
+#chat_content li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
+#chat_content {
+	height:540px;
+	padding-right:10px;
+	padding-left:5px;
+}
+
+.small_button {
+	font-size: 12px;
+    height: 30px;
+    margin-left: 5px;
+    margin-right: 40px;
+    padding: 2px;
+}
+
+#tools_aera input{
+	font-size: 12px;
+    height: 12px;
+    padding: 8px 5px 5px;
+    width: 150px;
+}
+
+.container {
+	overflow:auto;
+	height: 490px;
 }

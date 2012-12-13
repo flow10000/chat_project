@@ -1,16 +1,24 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
     <head>
-        <script src="socket.io/socket.io.js"></script>
+		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/blitzer/jquery-ui.css" type="text/css" />
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
+		<script src="socket.io/socket.io.js"></script>
         <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
         <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 		<title>Chatouille - Chat en ligne</title>
         <script>
             var socket = io.connect('http://localhost');
             $(document).ready(function(){
+				/* Mise en forme générale, ... */
+				var active_tab = "general";
 				$('.button').button();
+				$('.small_button').button();
 				$("#message_input").val('');
 				$('#send_message').button({ disabled: true });
+				$('#change_pseudo').button({ disabled: false });
+				$('#pseudo_input').val('');
+				$('#pseudo_input').attr("disabled", false);
 				$('input[type=text]').addClass('ui-state-default ui-corner-all');
 				$('input[type=text]').bind({
 					focusin: function() {
@@ -20,21 +28,34 @@
 						$(this).toggleClass('ui-state-focus');
 					}
 				});
+				/* Fin mise en forme */
 				
+				function trim(str, chars) {
+					return ltrim(rtrim(str, chars), chars);
+				}
+				
+				function ltrim(str, chars) {
+					chars = chars || "\\s";
+					return str.replace(new RegExp("^[" + chars + "]+", "g"), "");
+				}
+				 
+				function rtrim(str, chars) {
+					chars = chars || "\\s";
+					return str.replace(new RegExp("[" + chars + "]+$", "g"), "");
+				}
 				
 				socket.on('new_message', function (data) {
-					$('#chat_content').append("<p>"+data+"</p>");
-					$('#chat_content').animate({scrollTop:$('#chat_content').height()}, 'slow');
+					var temp_index = $("div[room='"+data.tag+"']").attr('id');
+					$('#'+temp_index+' .container').append("<p>"+data.content+"</p>");
+					$('#'+temp_index+' .container').scrollTop($('#'+data.tag+' .container').height());
 				});
 				
 				$('#send_message').click(function(){
-					socket.emit('new_message', $("#message_input").val());
+					socket.emit('new_message', {tag:active_tab,content:$("#message_input").val()});
 					$("#message_input").val('');
 					$("#message_input").focus();
 					$('#send_message').button({ disabled: true });
 				});
-				
-				
 				
 				if($("#message_input").length > 0)
 				{
@@ -57,7 +78,17 @@
 						  }
 					})
 				}
-				
+					
+				if($( "#join_chan" ).length > 0)
+				{
+					$("#join_chan").keypress(function (e){
+						code = e.keyCode ? e.keyCode : e.which;
+						  if(code.toString() == 13) 
+						  {
+							$("#join_chan_button").click();
+						  }
+					})
+				}
 				
 				$("#message_input").keyup(function (){
 					if($(this).val().length >= 1)
@@ -69,44 +100,103 @@
 				});
 				
 				socket.on('connected_users', function(data) {
-					$('#user_list').html('');
-					$.each(data, function(i,j){
-						$('#user_list').append("<p>"+j+"</p>");
+					$("div[room='"+data.tag+"'] .user_list").html("");
+					$("div[room='"+data.tag+"'] .user_list").append("<ul>");
+					$.each(data.users, function(i,j){
+						$("div[room='"+data.tag+"'] .user_list").append("<li>"+j+"</li>");
 					});
+					$("div[room='"+data.tag+"'] .user_list").append("</ul>");
 				});
 				
 				$('#change_pseudo').click(function(){
-					socket.emit('nickname', $("#pseudo_input").val());
-					$("#message_input").focus();
-					$('#pseudo_input').attr("disabled", true);
-					$(this).button({ disabled: true });
+					if($.trim($("#pseudo_input").val()) != "")
+					{
+						socket.emit('nickname', $("#pseudo_input").val());
+						$("#message_input").focus();
+						$('#pseudo_input').attr("disabled", true);
+						$(this).button({ disabled: true });
+					}
+					$("#pseudo_input").val('');
 				});
 				
+				/* Style multi chatroom*/
 				
+				var active_rooms = new Array();
+				active_rooms.push('general');
+				var tab_number = 1;
+				var tabTitle = $( "#join_chan" ),
+				tabTemplate = "<li room='#{room}'><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Fermer</span></li>";
+				
+				var tabs = $( "#chat_content" ).tabs({
+					
+					activate: function( event, ui ) {active_tab = $(ui.newPanel.selector).attr('room')}
+				});
+				
+				function addTab() {
+					var label = tabTitle.val().toLowerCase();
+					if($.inArray(label,active_rooms) == -1 && $.trim(label) != "")
+					{
+						active_rooms.push(label);
+						var id = "tab_"+tab_number,
+						li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ).replace(/#\{room\}/g, label) ),
+						tabContentHtml = '<div class="user_management"><h3>Utilisateurs connectés</h3><div class="user_list"></div></div><div class="container"></div>';
+						socket.emit('join', label);
+						tabs.find( ".ui-tabs-nav" ).append( li );
+						tabs.append( "<div id='" + id + "' room='"+label+"'>" + tabContentHtml + "</div>" );
+						tabs.tabs( "refresh" );
+						$("#message_input").focus();
+						var last_index = $('#chat_content > ul li').length;
+						tabs.tabs({ active: last_index-1 });
+						tab_number++;
+					}
+					tabTitle.val('');
+				}
+				
+				$( "#chat_content span.ui-icon-close" ).live( "click", function() {
+					var panelId = $( this ).closest( "li" ).remove().attr('room');
+					$("div[room='"+panelId+"']").remove();
+					while (active_rooms.indexOf(panelId) !== -1) {
+						active_rooms.splice(active_rooms.indexOf(panelId), 1);
+					}
+					socket.emit('chanquit', panelId);
+					$( "#" + panelId ).remove();
+					tabs.tabs( "refresh" );
+				});
+				
+				$('#join_chan_button').click(function(){
+					addTab();
+				});
 			});
         </script>
-		<link rel="stylesheet" href="css/main.css" type="text/css" />
-		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css" />
+		
     </head>
 
     <body>
         <div id="content">
 			<div id="header">
-				<h1>Chat(ouille) <img src="img/logo-chatouille.png" alt="NodeJS Chat"></h1>
+				<h1>Chat'ouille <img src="img/logo-chatouille.png" alt="NodeJS Chat"></h1>
 			</div>
 			<div id="chat_area">
-				<div id="user_management">
-					<h3>Utilisateurs connectés</h3>
-					<div id="user_list">
-					</div>
-					<div id="register_area">
-						<label for="pseudo_input">Pseudo :</label><br/>
-						<input type="text" id="pseudo_input" name="pseudo_input"/>
-						<button id="change_pseudo" class="button">Ok</button>
-					</div>
+			
+				<div id="tools_aera">
+					<label for="pseudo_input">Pseudo :</label>
+					<input type="text" id="pseudo_input" name="pseudo_input"/>
+					<button id="change_pseudo" class="small_button">Ok</button>
+					<label for="join_chan">Chatroom :</label>
+					<input type="text" id="join_chan" name="join_chan"/><button class="small_button" id="join_chan_button">Rejoindre</button>
 				</div>
 				<div id="chat_content">
-				
+					<ul>
+						<li room='general'><a href="#tab_0">General</a></li>
+					</ul>
+					<div id="tab_0" room='general'>
+						<div class="user_management">
+							<h3>Utilisateurs connectés</h3>
+							<div class="user_list"></div>
+						</div>
+						<div class="container">
+						</div>
+					</div>
 				</div>
 				<div id="user_message">
 					<input type="text" id="message_input" name="message_input"/><button id="send_message" class="button">Envoyer</button>
