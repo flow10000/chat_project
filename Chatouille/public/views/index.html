@@ -60,7 +60,7 @@
 					date = date.toLocaleDateString() + " à " +date.toLocaleTimeString();
 					
 					$('#'+temp_index+' .container').append("<div class='"+temp_class+"'><abbr title='"+date.capitalize()+"'><span class='pseudo'>"+data.nickName+" dit : </span>"+data.content+"</abbr></div>");
-					$('#'+temp_index+' .container').scrollTop($('#'+data.tag+' .container').height());
+					$('#'+temp_index+' .container').scrollTop($('#'+temp_index+' .container').height());
 				});
 				
 				$('#send_message').click(function(){
