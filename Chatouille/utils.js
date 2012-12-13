@@ -23,3 +23,25 @@
 
 	return html;
 }
+
+function Build_Index_Page(result, html)
+{
+	console.log(result);
+	var last_ten = "<ul>";
+	result.forEach(function(index) {
+		var link_name = (index.name).split("_")[2];
+		link_name = link_name.replace(/-/g," ");
+		link_name = link_name.chunk(30)[0];
+		last_ten += "<li><a href='/discussion/"+index.name+"' target='blank'/>"+link_name+"...</a></li>"
+	});
+	last_ten += "</ul>";
+	html = plates.bind(html, {"ten_last_content" : last_ten});
+	
+	return html;
+}
+
+String.prototype.chunk = function(size) {
+    return [].concat.apply([],
+        this.split('').map(function(x,i){ return i%size ? [] : this.slice(i,i+size) }, this)
+    )
+}

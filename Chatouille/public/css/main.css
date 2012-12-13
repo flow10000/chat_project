@@ -157,3 +157,66 @@ p, ol, ul, pre, form
 	overflow:auto;
 	height: 490px;
 }
+
+
+#ten_last {
+    float: left;
+    height: 355px;
+    margin-left: 17px;
+    position: absolute;
+    width: 228px;
+	
+	-webkit-border-radius: 10px;
+	   -moz-border-radius: 10px;
+			border-radius: 10px;
+	color: #444;
+	background-color: #fff;
+	font-size: 13px;
+	font-family: Freesans, sans-serif;
+	box-shadow:				1px 1px 8px #444;
+	-mox-box-shadow:		1px 1px 8px #444;
+	-webkit-box-shadow:		1px -1px 8px #444;
+}
+
+#ten_last h3 {
+	text-align:center;
+	margin-bottom: 20px;
+}
+
+#ten_last_content li {
+	list-style: none outside none;
+    margin-left: -27px;
+    padding: 3px;
+    width: 200px;
+}
+
+/* Mise en forme conversation */
+
+.user_chatouille .pseudo{
+	color:#D11919;
+	font-weight:bold;
+}
+
+.user_user .pseudo{
+	color:#00B6ED;
+	font-weight:bold;
+}
+
+.user_twitter .pseudo{
+	color:#8C00DC;
+	font-weight:bold;
+}
+
+.container abbr {
+	border: medium none;
+    text-decoration: none;
+}
+
+.nickname_chatouille {
+	color:#D11919;
+	font-weight:bold;
+}
+
+.nickname_user {
+	color:#00B6ED;
+}

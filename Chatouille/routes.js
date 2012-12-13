@@ -15,21 +15,34 @@ app.use(flatiron.plugins.http, {
 	before : [connect.static("public")]
 });
 
+
 app.router.get('/', function () {
     var self = this ;
-    fs.readFile(__dirname + html_path+'index.html','utf-8', function (err, html) {
+    fs.readFile(__dirname + html_path+'/views/index.html','utf-8', function (err, html) {
         if (err) {
             self.res.writeHead(404);
             return self.res.end('La page demandée est introuvable');
         }
-        self.res.writeHead(200,{'Content-Type': 'text/html;charset=utf-8'});
-        self.res.end(html,'utf-8');
-
+		else
+		{
+			dbMgr.Exec(function()
+			{
+				db.collection('talks', function(err, collection)
+				{
+					
+					collection.find({}, {name:1}).sort({_id: -1}).limit(10).toArray(function(err, result) {
+						html = Build_Index_Page(result, html);
+						self.res.writeHead(200,{'Content-Type': 'text/html;charset=utf-8'});
+						self.res.end(html,'utf-8');
+					});
+				});
+			});
+		}
     });
 });
 
 
-app.router.get('/discussion/:address', function (address) {
+app.router.get('/discussion/:address', function (address) {7
     var self = this ;
     fs.readFile(__dirname + html_path+ '/views/discussion.html','utf-8', function (err, html) {
 		dbMgr.Exec(function()
