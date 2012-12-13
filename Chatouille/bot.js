@@ -10,7 +10,8 @@ var Bot = function(tag, bname)
 
 Bot.prototype.Talk = function(content, clients)
 {
-	content = this.name + ' : ' + content;
+	var message = new Message(this.tag, this.name, content);
+	
 	for(var c in clients)
-		clients[c].socket.emit('new_message', {tag:this.tag, content:content});
+		clients[c].socket.emit('new_message', message);
 }
