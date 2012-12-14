@@ -1,5 +1,7 @@
 Chat'ouille - Version 2
 
+Fonctionnalités :
+
 - Gestion de plusieurs Chatroom
 - Affichage des flux Twitter en rapport avec le nom du salon
 - Gestion des pseudos (pseudo unique, ...)
