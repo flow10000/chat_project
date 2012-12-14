@@ -4,17 +4,11 @@
 	se charge de récupérer les entrées
 */
 
-var plugin_path = "../node_modules/";
-function Get_Plugin_Path(plugin_name)
-{
-	return plugin_path+plugin_name;
-}
-
-var flatiron = require(Get_Plugin_Path('flatiron')),
+var flatiron = require('flatiron'),
     path = require('path'),
     app = flatiron.app,
 	fs = require("fs"),
-	plates = require(Get_Plugin_Path('plates')),
+	plates = require('plates'),
 	connect = require('connect');
 
 
