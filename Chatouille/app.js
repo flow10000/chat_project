@@ -77,6 +77,12 @@ io.sockets.on('connection', function(socket)
 			chatRooms[chan].ClientQuit(socket.id);
 	});
 	
+	socket.on('kickend', function(chan)
+	{
+		if(chatRooms[chan])
+			chatRooms[chan].KickEnd(socket.id);
+	});
+	
 	socket.on('nickname', function(n)
 	{
 		if(NickNameAvalaible(n))
