@@ -1,4 +1,12 @@
-Chat'ouille - Version 2
+Chat'ouille - Version 3
+
+
+Ajouts :
+- Gestion du flood (kick si trop de message consécutif)
+- Cacher ou afficher le flux twitter
+- Smileys
+- Archivage des conversations : 10 messages de 2 personnes différentes au moins
+
 
 - Gestion de plusieurs Chatroom
 - Affichage des flux Twitter en rapport avec le nom du salon

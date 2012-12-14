@@ -6,6 +6,7 @@
 		<script src="socket.io/socket.io.js"></script>
         <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
         <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+		<script src="/js/utils.js"></script>
 		<title>Chatouille - Chat en ligne</title>
         <script>
             var socket = io.connect('http://localhost');
@@ -29,25 +30,7 @@
 					}
 				});
 				/* Fin mise en forme */
-				
-				function trim(str, chars) {
-					return ltrim(rtrim(str, chars), chars);
-				}
-				
-				function ltrim(str, chars) {
-					chars = chars || "\\s";
-					return str.replace(new RegExp("^[" + chars + "]+", "g"), "");
-				}
-				 
-				function rtrim(str, chars) {
-					chars = chars || "\\s";
-					return str.replace(new RegExp("[" + chars + "]+$", "g"), "");
-				}
-				
-				String.prototype.capitalize = function() {
-					return this.charAt(0).toUpperCase() + this.slice(1);
-				}
-				
+
 				socket.on('new_message', function (data) {
 					var temp_index = $("div[room='"+data.tag+"']").attr('id');
 					var temp_class = "";
@@ -55,16 +38,39 @@
 						temp_class="user_chatouille";
 					else
 						temp_class="user_"+data.from;
-						
+					
+					if(display_twittes != true && data.from == "tweeter")
+						temp_class += " hidden";
+					
 					var date = new Date(data.time);
 					date = date.toLocaleDateString() + " à " +date.toLocaleTimeString();
+					var content = Get_Emoticon(data.content);
 					
-					$('#'+temp_index+' .container').append("<div class='"+temp_class+"'><abbr title='"+date.capitalize()+"'><span class='pseudo'>"+data.nickName+" dit : </span>"+data.content+"</abbr></div>");
+					//console.log(data);
+					if(data.tag != active_tab && data.nickName != "MrChatouille")
+					{
+						console.log($("li[room='"+data.tag+"']"));
+						$("li[room='"+data.tag+"']").removeClass("ui-state-default").addClass( "not_read");
+					}
+					
+					$('#'+temp_index+' .container').append("<div class='"+temp_class+"'><abbr title='"+date.capitalize()+"'><span class='pseudo'>"+data.nickName+" dit : </span>"+content+"</abbr></div>");
 					$('#'+temp_index+' .container').scrollTop($('#'+temp_index+' .container').height());
 				});
-				
+
 				$('#send_message').click(function(){
-					socket.emit('new_message', {tag:active_tab,content:$("#message_input").val()});
+					var temp_msg = Check_Command($("#message_input").val());
+					if(temp_msg == "message")
+						socket.emit('new_message', {tag:active_tab,content:$("#message_input").val()});
+					else if(temp_msg == false)
+					{
+						
+					}
+					else
+					{
+						var temp_index = $("div[room='"+active_tab+"']").attr('id');
+						$('#'+temp_index+' .container').append(temp_msg);
+					}
+					
 					$("#message_input").val('');
 					$("#message_input").focus();
 					$('#send_message').button({ disabled: true });
@@ -117,10 +123,12 @@
 					$("div[room='"+data.tag+"'] .user_list").append("<ul>");
 					$.each(data.users, function(i,j){
 						var temp_content = "";
-						if(j=="MrChatouille")
-							temp_content = "<li class='nickname_chatouille'><img src='/img/ressources/etoile.png'/> "+j+"</li>"
+						if(j.role=="bot")
+							temp_content = "<li class='nickname_bot' nick='"+j.nickname+"'><img src='/img/ressources/bot.png'/> "+j.nickname+"</li>";
+						else if(j.role=="admin")
+							temp_content = "<li class='nickname_admin' nick='"+j.nickname+"'><img src='/img/ressources/etoile.png'/> "+j.nickname+"</li>";
 						else
-							temp_content = "<li class='nickname_user'>"+j+"</li>"
+							temp_content = "<li class='nickname_user' nick='"+j.nickname+"'>"+j.nickname+"</li>";
 							
 						$("div[room='"+data.tag+"'] .user_list").append(temp_content);
 					});
@@ -130,7 +138,14 @@
 				$('#change_pseudo').click(function(){
 					if($.trim($("#pseudo_input").val()) != "")
 					{
-						socket.emit('nickname', $("#pseudo_input").val());
+						var pseudo = $.trim($("#pseudo_input").val());
+						pseudo = pseudo.chunk(17);
+						if(pseudo[1])
+							pseudo = $.trim(pseudo[0])+"~";
+						else
+							pseudo = $.trim(pseudo[0]);
+					
+						socket.emit('nickname', (pseudo));
 						$("#message_input").focus();
 					}
 					$("#pseudo_input").val('');
@@ -146,11 +161,23 @@
 				
 				var tabs = $( "#chat_content" ).tabs({
 					
-					activate: function( event, ui ) {active_tab = $(ui.newPanel.selector).attr('room')}
+					activate: function( event, ui ) {
+						active_tab = $(ui.newPanel.selector).attr('room')
+						$("li[room='"+active_tab+"']").addClass("ui-state-default")
+					}
+				});
+				tabs.find( ".ui-tabs-nav" ).sortable({
+					axis: "x",
+					stop: function() {
+						tabs.tabs( "refresh" );
+					}
 				});
 				
-				function addTab() {
-					var label = $.trim(tabTitle.val()).toLowerCase();
+				function addTab(source, chan_name) {
+					if(source == "input")
+						var label = $.trim(tabTitle.val()).toLowerCase();
+					else
+						var label = chan_name;
 					var reg = new RegExp('/[^a-zA-Z0-9_]/g');
 					if(!(reg.test(label)))
 					{
@@ -179,19 +206,129 @@
 				
 				$( "#chat_content span.ui-icon-close" ).live( "click", function() {
 					var panelId = $( this ).closest( "li" ).remove().attr('room');
+					Quit_Room(panelId, true);
+				});
+				
+				function Quit_Room(panelId, send)
+				{
 					$("div[room='"+panelId+"']").remove();
 					while (active_rooms.indexOf(panelId) !== -1) {
 						active_rooms.splice(active_rooms.indexOf(panelId), 1);
 					}
-					socket.emit('chanquit', panelId);
+					
+					if(send != false)
+					{
+						socket.emit('chanquit', panelId);
+					}
 					$( "#" + panelId ).remove();
 					tabs.tabs( "refresh" );
-				});
+				}
 				
 				$('#join_chan_button').click(function(){
-					addTab();
+					addTab("input", "");
 				});
+				
+				function Check_Command(message)
+				{
+					var splited_message = message.split(" ");
+					var temp_command = splited_message[0];
+					var error = "<div class='chat_info'>Commande non valide. Tapez <b>/help</b> pour obtenir la liste des commandes disponibles</div>";
+					
+					switch (temp_command) {
+						case "/help":
+							if(splited_message.length == 1)
+							{
+								var content = "<div class='chat_info'>Liste des commandes : <br />";
+								content += "/join room : rejoindre le salon<br />";
+								content += "/quit : quiter le salon actif<br />";
+								content += "/nick nickname : changer le pseduo";
+								content += "</div>";
+								return content;
+							}
+							else
+								return error;
+						break;
+						case "/quit":
+							if(splited_message.length == 1)
+							{
+								if(active_tab != "general")
+								{
+									$("li[room='"+active_tab+"']").remove();
+									Quit_Room(active_tab, true);
+									return false;
+								}
+								else
+									return "<div class='chat_info'>Vous ne pouvez pas quitter le salon général</div>";
+							}
+							else
+							{
+								return error;
+							}
+						break;
+						case "/join":
+							if(splited_message.length == 2)
+							{
+								addTab("command", splited_message[1]);
+								return false;
+							}
+							else
+							{
+								return error;
+							}
+						break;
+						case "/nick":
+							if($.trim(splited_message[1]) != "")
+							{
+								splited_message.splice(0, 1);
+								var pseudo = $.trim(splited_message.join(" "));
+								pseudo = pseudo.chunk(17);
+								if(pseudo[1])
+									pseudo = $.trim(pseudo[0])+"~";
+								else
+									pseudo = $.trim(pseudo[0]);
+									
+								socket.emit('nickname', (pseudo));
+								$("#message_input").focus();
+							}
+							return false;
+						break;
+						default: 
+							return "message";
+						break;
+					}
+
+				}
+				
+				/* Controle utilisateur */
+				var display_twittes = true;
+				
+				$('#disable_twitter').button({
+					text: false,
+					icons: {
+						primary: "twitter-icon"
+					}
+				}).click(function( event ) {
+					if(display_twittes)
+					{
+						$('.user_tweeter').addClass("hidden");
+						display_twittes = false;
+					}
+					else
+					{
+						$('.user_tweeter').removeClass("hidden");
+						display_twittes = true;
+					}
+				});
+				$( "#user_controls" ).buttonset();
+				
+				socket.on('kick', function (data) {
+					$("li[room='"+data+"']").remove();
+					Quit_Room(data, false);
+					socket.emit("kickend", data);
+				});
+				
 			});
+			
         </script>
 		
     </head>
@@ -224,11 +361,13 @@
 							<div class="user_list"></div>
 						</div>
 						<div class="container">
+							<div class='chat_info'>Bievenue sur le Chat'ouille. Tapez <b>/help</b> pour obtenir la liste des commandes disponibles.</div>
 						</div>
 					</div>
 				</div>
 				<div id="user_message">
 					<input type="text" id="message_input" name="message_input"/><button id="send_message" class="button">Envoyer</button>
+					<div id="user_controls"><input type="checkbox" checked="checked" id="disable_twitter" /><label for="disable_twitter">Montre/Cacher le flux Twitter</label></div>
 				</div>
 			</div>
 		</div>

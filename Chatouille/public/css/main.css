@@ -202,7 +202,7 @@ p, ol, ul, pre, form
 	font-weight:bold;
 }
 
-.user_twitter .pseudo{
+.user_tweeter .pseudo{
 	color:#8C00DC;
 	font-weight:bold;
 }
@@ -212,11 +212,66 @@ p, ol, ul, pre, form
     text-decoration: none;
 }
 
-.nickname_chatouille {
+.nickname_bot {
 	color:#D11919;
 	font-weight:bold;
 }
 
 .nickname_user {
 	color:#00B6ED;
+	margin-left: 20px;
+}
+
+.nickname_admin {
+	color:#00B6ED;
+}
+
+.chat_info {
+	font-style:italic;
+	color:#606161;
+}
+
+#user_controls {
+	float:right;
+}
+
+.hidden {
+	display:none;
+}
+
+.ui-button.ui-state-active  .ui-icon.twitter-icon {
+    background-image: url('/img/ressources/twitter_enable.png');
+    width: 32px;
+    height: 32px; 
+}
+
+#disable_twitter {
+	width:45px;
+	height:45px;
+}
+
+.ui-button  .ui-icon.twitter-icon {
+    background-image: url('/img/ressources/twitter_disabled.png');
+    height: 35px;
+    margin-left: -14px;
+    margin-top: -14px;
+    width: 35px;
+}
+
+.ui-button.ui-state-active  .ui-icon.twitter-icon {
+    background-image: url("/img/ressources/twitter_enable.png");
+    height: 35px;
+    margin-left: -14px;
+    margin-top: -14px;
+    width: 35px;
+}
+
+#user_controls label{
+	height: 35px;
+    width: 50px;
+}
+
+.not_read {
+	color: #FD7317;
+	background:#FD7317;
 }
