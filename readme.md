@@ -7,7 +7,7 @@ Ajouts :
 - Smileys
 - Archivage des conversations : 10 messages de 2 personnes différentes au moins
 
-
+Fonctionnalités :
 - Gestion de plusieurs Chatroom
 - Affichage des flux Twitter en rapport avec le nom du salon
 - Gestion des pseudos (pseudo unique, ...)
